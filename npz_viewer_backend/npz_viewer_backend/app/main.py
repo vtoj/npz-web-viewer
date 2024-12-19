@@ -2,12 +2,20 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import os
+from dotenv import load_dotenv
 
 app = FastAPI()
 
+load_dotenv()
+
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
+if '' in ALLOWED_ORIGINS:  # Remove empty strings if any
+    ALLOWED_ORIGINS = [origin for origin in ALLOWED_ORIGINS if origin]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend origin
+    allow_origins = ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -15,6 +23,10 @@ app.add_middleware(
 
 MAX_ROWS = 200
 MAX_COLS = 200
+
+@app.get("/")
+def hello_world():
+    return {"message": "Hello, world!"}
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
