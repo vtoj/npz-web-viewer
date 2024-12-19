@@ -26,6 +26,24 @@ interface DataTableProps {
 }
 
 export default function DataTable({ data }: DataTableProps) {
+  const downloadCSV = (arrayData: number[][], fileName: string) => {
+    // Convert array to CSV string
+    const csvContent = arrayData.map((row) => row.join(',')).join('\n')
+
+    // Create a Blob from the CSV content
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+
+    // Create a download link
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${fileName}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-8">
       {Object.entries(data).map(([fileName, arrays]) => (
@@ -39,7 +57,15 @@ export default function DataTable({ data }: DataTableProps) {
                 {arrayName} <span className="text-gray-500 text-xs">({arrayData.ndim}D Array)</span>
               </h3>
               {arrayData.ndim === 2 ? (
-                <Table2D data={arrayData.data} />
+                <div>
+                  <Table2D data={arrayData.data} />
+                  <Button
+                    onClick={() => downloadCSV(arrayData.data, `${fileName}-${arrayName}`)}
+                    className="mt-4"
+                  >
+                    Download CSV
+                  </Button>
+                </div>
               ) : (
                 <MultiDimensionalArray data={arrayData.data} depth={0} />
               )}
