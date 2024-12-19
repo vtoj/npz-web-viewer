@@ -22,20 +22,29 @@ interface ArrayData {
 }
 
 interface DataTableProps {
-  data: Record<string, ArrayData>
+  data: Record<string, Record<string, ArrayData>> // Adjusted for multiple files
 }
 
 export default function DataTable({ data }: DataTableProps) {
   return (
     <div className="space-y-8">
-      {Object.entries(data).map(([key, value]) => (
-        <div key={key} className="border rounded-lg p-4">
-          <h2 className="text-lg font-semibold mb-2">{key} <span className="text-gray-500 text-xs">({value.ndim}D Array)</span></h2>
-          {value.ndim === 2 ? (
-            <Table2D data={value.data} />
-          ) : (
-            <MultiDimensionalArray data={value.data} depth={0} />
-          )}
+      {Object.entries(data).map(([fileName, arrays]) => (
+        <div key={fileName} className="border rounded-lg p-4">
+          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+            File: {fileName}
+          </h2>
+          {Object.entries(arrays).map(([arrayName, arrayData]) => (
+            <div key={arrayName} className="border rounded-lg p-4 mb-4">
+              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                {arrayName} <span className="text-gray-500 text-xs">({arrayData.ndim}D Array)</span>
+              </h3>
+              {arrayData.ndim === 2 ? (
+                <Table2D data={arrayData.data} />
+              ) : (
+                <MultiDimensionalArray data={arrayData.data} depth={0} />
+              )}
+            </div>
+          ))}
         </div>
       ))}
     </div>
@@ -110,3 +119,4 @@ function MultiDimensionalArray({ data, depth }: { data: any[]; depth: number }) 
     )
   }
 }
+
