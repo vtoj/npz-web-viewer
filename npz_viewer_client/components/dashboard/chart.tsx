@@ -42,7 +42,7 @@ export default function LineChart({ data }: LineChartProps) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top' as const, // Explicitly set the type to one of the allowed values
       },
       title: {
         display: true,
