@@ -14,6 +14,20 @@ import {
 } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import { ChevronRight } from 'lucide-react'
+import LineChart from './chart'
+import ScatterPlot from './scatterplot'
+import Heatmap from './heatmap'
+import GrayscaleImage from './greyscale'
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface ArrayData {
   size: any
@@ -59,12 +73,29 @@ export default function DataTable({ data }: DataTableProps) {
               {arrayData.ndim === 2 ? (
                 <div>
                   <Table2D data={arrayData.data} />
-                  <Button
-                    onClick={() => downloadCSV(arrayData.data, `${fileName}-${arrayName}`)}
-                    className="mt-4"
-                  >
-                    Download CSV
-                  </Button>
+                  <div className='flex w-full items-center justify-between'>
+                    <Button
+                      onClick={() => downloadCSV(arrayData.data, `${fileName}-${arrayName}`)}
+                      className="mt-4"
+                    >
+                      Download CSV
+                    </Button>
+                    <>
+                      {/*<Select>
+                        <SelectTrigger className="w-[140px] mt-4">
+                          <SelectValue placeholder="Chart Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Charts</SelectLabel>
+                            <SelectItem value="line">Line</SelectItem>
+                            <SelectItem value="scatterplot">ScatterPlot</SelectItem>
+                            <SelectItem value="heatmap">Heatmap</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select> */}
+                    </>
+                  </div>
                 </div>
               ) : (
                 <MultiDimensionalArray data={arrayData.data} depth={0} />
@@ -78,29 +109,74 @@ export default function DataTable({ data }: DataTableProps) {
 }
 
 function Table2D({ data }: { data: number[][] }) {
+  const [chartType, setChartType] = useState<string | null>(null)
+
+  const renderChart = () => {
+    if (!chartType) return null
+
+    switch (chartType) {
+      case 'scatter':
+        return <ScatterPlot data={data} />
+      case 'line':
+        return <LineChart data={data} />
+      case 'grayscale':
+        return <GrayscaleImage data={data} />
+      default:
+        return null
+    }
+  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          {data[0].map((_, colIndex) => (
-            <TableHead key={colIndex} className="text-center">
-              Column {colIndex + 1}
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.map((row, rowIndex) => (
-          <TableRow key={rowIndex}>
-            {row.map((cell, cellIndex) => (
-              <TableCell key={cellIndex} className="text-center">
-                {typeof cell === 'number' ? cell.toFixed(4) : cell}
-              </TableCell>
+    <div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {data[0].map((_, colIndex) => (
+              <TableHead key={colIndex} className="text-center">
+                Column {colIndex + 1}
+              </TableHead>
             ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {data.map((row, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {row.map((cell, cellIndex) => (
+                <TableCell key={cellIndex} className="text-center">
+                  {typeof cell === 'number' ? cell.toFixed(4) : cell}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <div className="flex items-center justify-between mt-4">
+        <Select
+          onValueChange={(value) => setChartType(value)}
+          value={chartType || ''}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Select Chart Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="scatter">Scatter Plot</SelectItem>
+            <SelectItem value="line">Line Chart</SelectItem>
+            <SelectItem value="grayscale">Grayscale Image</SelectItem>
+          </SelectContent>
+        </Select>
+        {chartType && (
+          <Button
+            onClick={() => setChartType(null)}
+            className="ml-4"
+          >
+            Hide Chart
+          </Button>
+        )}
+      </div>
+
+      {chartType && <div className="mt-4">{renderChart()}</div>}
+    </div>
   )
 }
 
