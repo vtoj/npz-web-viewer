@@ -1,10 +1,18 @@
-import Plot from 'react-plotly.js'
+'use client'
+
+import dynamic from 'next/dynamic'
+
+const Plot = dynamic(() => import('react-plotly.js'), { ssr: false })
 
 interface Surface3DProps {
   data: number[][]
 }
 
 export default function Surface3D({ data }: Surface3DProps) {
+  if (!data || data.length === 0) {
+    return <div>No data available for 3D Surface Plot.</div>
+  }
+
   return (
     <Plot
       data={[

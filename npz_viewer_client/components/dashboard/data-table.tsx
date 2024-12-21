@@ -16,15 +16,12 @@ import { Button } from '@/components/ui/button'
 import { ChevronRight } from 'lucide-react'
 import LineChart from './chart'
 import ScatterPlot from './scatterplot'
-import Heatmap from './heatmap'
 import GrayscaleImage from './greyscale'
 
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -82,21 +79,6 @@ export default function DataTable({ data }: DataTableProps) {
                     >
                       Download CSV
                     </Button>
-                    <>
-                      {/*<Select>
-                        <SelectTrigger className="w-[140px] mt-4">
-                          <SelectValue placeholder="Chart Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Charts</SelectLabel>
-                            <SelectItem value="line">Line</SelectItem>
-                            <SelectItem value="scatterplot">ScatterPlot</SelectItem>
-                            <SelectItem value="heatmap">Heatmap</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select> */}
-                    </>
                   </div>
                 </div>
               ) : (
