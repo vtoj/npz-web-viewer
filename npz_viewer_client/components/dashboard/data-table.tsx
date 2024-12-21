@@ -28,6 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import Scatter3D from './scatter3d'
+import Surface3D from './surface3d'
 
 interface ArrayData {
   size: any
@@ -121,6 +123,10 @@ function Table2D({ data }: { data: number[][] }) {
         return <LineChart data={data} />
       case 'grayscale':
         return <GrayscaleImage data={data} />
+      case 'scatter3d':
+        return <Scatter3D data={data} />
+      case 'surface3d':
+        return <Surface3D data={data} />
       default:
         return null
     }
@@ -163,6 +169,8 @@ function Table2D({ data }: { data: number[][] }) {
             <SelectItem value="scatter">Scatter Plot</SelectItem>
             <SelectItem value="line">Line Chart</SelectItem>
             <SelectItem value="grayscale">Grayscale Image</SelectItem>
+            <SelectItem value="surface3d">Surface3d</SelectItem>
+            <SelectItem value="scatter3d">Scatter3d</SelectItem>
           </SelectContent>
         </Select>
         {chartType && (
