@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { roger } from "@/components/fonts/fonts";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@vercel/analytics/next"
 
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -30,8 +31,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roger.variable} antialiased`}
       >
-          {children}
-          <Toaster richColors />
+        {children}
+        <Analytics />
+        <Toaster richColors />
       </body>
     </html>
   );
