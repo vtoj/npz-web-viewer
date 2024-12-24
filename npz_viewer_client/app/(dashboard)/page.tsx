@@ -1,4 +1,4 @@
-import FileUploader from '@/components/dashboard/file-uploader'
+import FileUploader from '@/components/dashboard/file-uploader/FileUploader'
 import { GithubIcon } from 'lucide-react'
 import Link from 'next/link'
 import BgNoiseWrapper from '@/components/ui/texture-wrapper'
