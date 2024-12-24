@@ -1,7 +1,6 @@
 # 📊 NPZ/NPY Web Viewer 🌐
 
-Welcome to the **NPZ/NPY Web Viewer**, a modern, feature-rich tool designed for interactive visualization and exploration of `.npz` and `.npy` files. Whether you’re a data scientist, researcher, or engineer, this app helps you explore and transform your data with ease. 🚀
-
+Welcome to the **NPZ/NPY Web Viewer**, a modern, feature-rich tool designed for interactive visualization and exploration of `.npz` and `.npy` files. 
 ![Landing](docs/images/Landing.png)
 
 ---
@@ -167,4 +166,4 @@ This project is licensed under the **BSD 3-Clause**. See the [LICENSE](LICENSE) 
 ---
 
 
-### 🌐 Check it out live at [Your Deployed URL](https://https://npz-web-viewer.vercel.app/)
+### 🌐 Check it out live [here](https://npz-web-viewer.vercel.app)
