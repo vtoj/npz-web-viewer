@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -6,47 +6,47 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import LineChart from '../charts/chart'
-import ScatterPlot from '../charts/scatterplot'
-import GrayscaleImage from '../charts/greyscale'
-import Scatter3D from '../charts/scatter3d'
-import Surface3D from '../charts/surface3d'
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import LineChart from "../charts/chart";
+import ScatterPlot from "../charts/scatterplot";
+import GrayscaleImage from "../charts/greyscale";
+import Scatter3D from "../charts/scatter3d";
+import Surface3D from "../charts/surface3d";
 
 interface Table2DProps {
-  data: number[][]
-  fileName: string
+  data: number[][];
+  fileName: string;
 }
 
 export default function Table2D({ data }: Table2DProps) {
-  const [chartType, setChartType] = useState<string | null>(null)
+  const [chartType, setChartType] = useState<string | null>(null);
 
   const renderChart = () => {
-    if (!chartType) return null
+    if (!chartType) return null;
 
     switch (chartType) {
-      case 'scatter':
-        return <ScatterPlot data={data} />
-      case 'line':
-        return <LineChart data={data} />
-      case 'grayscale':
-        return <GrayscaleImage data={data} />
-      case 'scatter3d':
-        return <Scatter3D data={data} />
-      case 'surface3d':
-        return <Surface3D data={data} />
+      case "scatter":
+        return <ScatterPlot data={data} />;
+      case "line":
+        return <LineChart data={data} />;
+      case "grayscale":
+        return <GrayscaleImage data={data} />;
+      case "scatter3d":
+        return <Scatter3D data={data} />;
+      case "surface3d":
+        return <Surface3D data={data} />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div>
@@ -65,7 +65,7 @@ export default function Table2D({ data }: Table2DProps) {
             <TableRow key={rowIndex}>
               {row.map((cell, cellIndex) => (
                 <TableCell key={cellIndex} className="text-center">
-                  {typeof cell === 'number' ? cell.toFixed(4) : cell}
+                  {typeof cell === "number" ? cell.toFixed(4) : cell}
                 </TableCell>
               ))}
             </TableRow>
@@ -76,7 +76,7 @@ export default function Table2D({ data }: Table2DProps) {
       <div className="flex items-center justify-between mt-4">
         <Select
           onValueChange={(value) => setChartType(value)}
-          value={chartType || ''}
+          value={chartType || ""}
         >
           <SelectTrigger className="w-fit">
             <SelectValue placeholder="Select Chart Type" />
@@ -98,5 +98,5 @@ export default function Table2D({ data }: Table2DProps) {
 
       {chartType && <div className="mt-4">{renderChart()}</div>}
     </div>
-  )
+  );
 }
