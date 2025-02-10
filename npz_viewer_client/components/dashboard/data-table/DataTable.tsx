@@ -8,6 +8,18 @@ import MultiDimensionalArray from "./MultiDimensionalArray";
 import { Button } from "@/components/ui/button";
 import { ChevronsDown, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import LineChart from "../charts/chart";
+import ScatterPlot from "../charts/scatterplot";
+import GrayscaleImage from "../charts/greyscale";
+import Scatter3D from "../charts/scatter3d";
+import Surface3D from "../charts/surface3d";
 
 interface ArrayData {
   size: any;
@@ -19,10 +31,37 @@ interface DataTableProps {
   data: Record<string, Record<string, ArrayData>>; // Adjusted for multiple files
 }
 
+function ChartRenderer({
+  arrayData,
+  chartType,
+}: {
+  arrayData: ArrayData;
+  chartType: string | null;
+}) {
+  if (!chartType) return null;
+
+  switch (chartType) {
+    case "scatter":
+      return <ScatterPlot data={arrayData.data} />;
+    case "line":
+      return <LineChart data={arrayData.data} />;
+    case "grayscale":
+      return <GrayscaleImage data={arrayData.data} />;
+    case "scatter3d":
+      return <Scatter3D data={arrayData.data} />;
+    case "surface3d":
+      return <Surface3D data={arrayData.data} />;
+    default:
+      return null;
+  }
+}
+
 export default function DataTable({ data }: DataTableProps) {
   const lenisRef = useRef<Lenis | null>(null);
   const downloadRefs = useRef<HTMLButtonElement[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0); // Tracks the current download button index
+
+  const [chartType, setChartType] = useState<string | null>(null);
 
   useEffect(() => {
     const lenis = new Lenis();
@@ -112,23 +151,74 @@ export default function DataTable({ data }: DataTableProps) {
                       data={arrayData.data}
                       fileName={`${fileName}-${arrayName}`}
                     />
-                    <div className="flex w-full items-center justify-between">
-                      <Button
-                        ref={(el) => {
-                          if (el) downloadRefs.current[downloadIndex] = el;
-                        }}
-                        onClick={() =>
-                          downloadCSV(
-                            arrayData.data,
-                            `${fileName}-${arrayName}`,
-                          )
-                        }
-                        className="mt-4"
-                      >
-                        Download CSV
-                      </Button>
-                      <ArrayCopyBtn text={formattedText} />
+                    {/* Flex container for the buttons */}
+                    <div className="flex w-full items-center justify-between mt-4">
+                      {/* Left column: Download CSV and Chart Select */}
+                      <div className="flex space-x-2">
+                        <Button
+                          ref={(el) => {
+                            if (el)
+                              downloadRefs.current[downloadIndex] = el;
+                          }}
+                          onClick={() =>
+                            downloadCSV(
+                              arrayData.data,
+                              `${fileName}-${arrayName}`,
+                            )
+                          }
+                        >
+                          Download CSV
+                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Select
+                            onValueChange={(value) => setChartType(value)}
+                            value={chartType || ""}
+                          >
+                            <SelectTrigger className="w-fit">
+                              <SelectValue placeholder="Select Chart Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="scatter">
+                                Scatter Plot
+                              </SelectItem>
+                              <SelectItem value="line">
+                                Line Chart
+                              </SelectItem>
+                              <SelectItem value="grayscale">
+                                Grayscale Image
+                              </SelectItem>
+                              <SelectItem value="scatter3d">
+                                Scatter3D
+                              </SelectItem>
+                              <SelectItem value="surface3d">
+                                Surface3D
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {chartType && (
+                            <Button
+                              onClick={() => setChartType(null)}
+                              className="ml-2"
+                            >
+                              Hide Chart
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      {/* Right column: Copy Button */}
+                      <div>
+                        <ArrayCopyBtn text={formattedText} />
+                      </div>
                     </div>
+                    {/* Chart appears below all buttons */}
+                    {chartType && (
+                      <div className="mt-4">
+                        <ChartRenderer
+                          arrayData={arrayData}
+                          chartType={chartType}
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div>
