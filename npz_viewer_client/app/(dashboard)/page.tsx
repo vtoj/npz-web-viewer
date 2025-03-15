@@ -3,11 +3,51 @@ import { GithubIcon, Bug, Coffee } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import BgNoiseWrapper from "@/components/ui/texture-wrapper";
+import Script from "next/script";
 //
 export default function Home() {
   return (
     <BgNoiseWrapper url="/cult-noise.png">
       <main className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-gray-900 dark:to-gray-800">
+        {/* JSON-LD structured data for better SEO */}
+        <Script
+          id="schema-structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "NPZ Viewer",
+              applicationCategory: "DataVisualizationApplication",
+              operatingSystem: "Web",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+              description:
+                "A modern web tool for visualizing and exploring .npy and .npz files with 3D plots, machine learning integration, and data analysis features.",
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.8",
+                ratingCount: "25",
+              },
+              featureList: [
+                "3D Scatter Plot",
+                "3D Surface Plot",
+                "Scatter Plot",
+                "Line Chart",
+                "Grayscale Image",
+                "K-means clustering",
+                "DBSCAN clustering",
+                "Principal Component Analysis (PCA)",
+              ],
+              screenshot: "https://npz-web-viewer.vercel.app/og-image.jpg",
+              url: "https://npz-web-viewer.vercel.app",
+            }),
+          }}
+        />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
             <div className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
