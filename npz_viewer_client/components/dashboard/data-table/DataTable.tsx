@@ -20,6 +20,7 @@ import ScatterPlot from "../charts/scatterplot";
 import GrayscaleImage from "../charts/greyscale";
 import Scatter3D from "../charts/scatter3d";
 import Surface3D from "../charts/surface3d";
+import MLPanel from "../ml/MLPanel";
 
 interface ArrayData {
   size: any;
@@ -57,20 +58,49 @@ function ChartRenderer({
 }
 
 export default function DataTable({ data }: DataTableProps) {
-  const lenisRef = useRef<Lenis | null>(null);
-  const downloadRefs = useRef<HTMLButtonElement[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0); // Tracks the current download button index
-
+  const downloadButtonRefs = useRef<Record<string, HTMLButtonElement | null>>(
+    {}
+  );
   const [chartType, setChartType] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [selectedArrayKey, setSelectedArrayKey] = useState<string | null>(null);
+  const [currentDownloadIndex, setCurrentDownloadIndex] = useState(0);
+  const [downloadButtons, setDownloadButtons] = useState<string[]>([]);
+
+  // Set initial selections when data is loaded
+  useEffect(() => {
+    if (Object.keys(data).length > 0) {
+      const firstFile = Object.keys(data)[0];
+      setSelectedFile(firstFile);
+
+      if (Object.keys(data[firstFile]).length > 0) {
+        const firstArray = Object.keys(data[firstFile])[0];
+        setSelectedArrayKey(firstArray);
+      }
+    }
+  }, [data]);
+
+  // Build a list of all download button IDs
+  useEffect(() => {
+    const buttons: string[] = [];
+    Object.entries(data).forEach(([fileName, arrays]) => {
+      Object.entries(arrays).forEach(([arrayName, arrayData]) => {
+        if (arrayData.ndim === 2) {
+          buttons.push(`${fileName}-${arrayName}`);
+        }
+      });
+    });
+    setDownloadButtons(buttons);
+  }, [data]);
 
   useEffect(() => {
     const lenis = new Lenis();
-    lenisRef.current = lenis;
 
     function raf(time: any) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
+
     requestAnimationFrame(raf);
 
     return () => {
@@ -79,15 +109,17 @@ export default function DataTable({ data }: DataTableProps) {
   }, []);
 
   const scrollToNextDownload = () => {
-    if (lenisRef.current && downloadRefs.current.length > 0) {
-      const target = downloadRefs.current[currentIndex];
+    if (downloadButtons.length === 0) return;
 
-      if (target) {
-        lenisRef.current.scrollTo(target, { duration: 2.5, offset: -500 });
-        setCurrentIndex(
-          (prevIndex) => (prevIndex + 1) % downloadRefs.current.length,
-        );
-      }
+    // Move to the next download button
+    const nextIndex = (currentDownloadIndex + 1) % downloadButtons.length;
+    setCurrentDownloadIndex(nextIndex);
+
+    const buttonId = downloadButtons[nextIndex];
+    const buttonElement = downloadButtonRefs.current[buttonId];
+
+    if (buttonElement) {
+      buttonElement.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   };
 
@@ -97,142 +129,144 @@ export default function DataTable({ data }: DataTableProps) {
     const copyToClipboard = () => {
       navigator.clipboard.writeText(text);
       setCopied(true);
+      toast.success("Array copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
-      toast.success("Copied to clipboard");
     };
 
     return (
       <Button
         variant="outline"
-        size="icon"
+        size="sm"
         onClick={copyToClipboard}
-        aria-label={copied ? "Copied" : "Copy to clipboard"}
+        className="flex items-center space-x-1"
       >
-        <span className="sr-only">{copied ? "Copied" : "Copy"}</span>
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        <span>{copied ? "Copied!" : "Copy"}</span>
       </Button>
     );
   }
 
   return (
-    <div className="relative space-y-8">
+    <div className="space-y-6">
       {/* Scroll to Download Button */}
       <button
         onClick={scrollToNextDownload}
-        className="fixed bottom-8 right-8 z-50 bg-indigo-600 text-white rounded-full p-4 shadow-lg hover:bg-indigo-700 transition"
-        aria-label="Scroll to Next Download"
+        className="fixed bottom-4 right-4 bg-indigo-600 text-white p-2 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-10"
+        aria-label="Scroll to next download"
       >
         <ChevronsDown className="h-6 w-6" />
       </button>
 
-      {Object.entries(data).map(([fileName, arrays], fileIndex) => (
-        <div key={fileName} className="border rounded-lg p-4">
-          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-            File: {fileName}
-          </h2>
-          {Object.entries(arrays).map(([arrayName, arrayData], arrayIndex) => {
-            const formattedText =
-              arrayData.ndim === 2
-                ? arrayData.data.map((row: any) => row.join(", ")).join("\n")
-                : JSON.stringify(arrayData.data, null, 2);
+      <div>
+        {Object.entries(data).map(([fileName, arrays]) => (
+          <div key={fileName} className="mb-8">
+            <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+              {fileName}
+            </h3>
+            {Object.entries(arrays).map(([arrayName, arrayData]) => {
+              const formattedText = JSON.stringify(arrayData.data);
+              const buttonId = `${fileName}-${arrayName}`;
 
-            const downloadIndex = fileIndex + arrayIndex;
-            return (
-              <div key={arrayName} className="border rounded-lg p-4 mb-4">
-                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                  {arrayName}{" "}
-                  <span className="text-gray-500 text-xs">
-                    ({arrayData.ndim}D Array)
-                  </span>
-                </h3>
-                {arrayData.ndim === 2 ? (
-                  <div>
-                    <Table2D
-                      data={arrayData.data}
-                      fileName={`${fileName}-${arrayName}`}
-                    />
-                    {/* Flex container for the buttons */}
-                    <div className="flex w-full items-center justify-between mt-4">
-                      {/* Left column: Download CSV and Chart Select */}
-                      <div className="flex space-x-2">
-                        <Button
-                          ref={(el) => {
-                            if (el)
-                              downloadRefs.current[downloadIndex] = el;
-                          }}
-                          onClick={() =>
-                            downloadCSV(
-                              arrayData.data,
-                              `${fileName}-${arrayName}`,
-                            )
-                          }
-                        >
-                          Download CSV
-                        </Button>
-                        <div className="flex items-center space-x-2">
-                          <Select
-                            onValueChange={(value) => setChartType(value)}
-                            value={chartType || ""}
+              return (
+                <div
+                  key={buttonId}
+                  className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  onClick={() => {
+                    setSelectedFile(fileName);
+                    setSelectedArrayKey(arrayName);
+                  }}
+                >
+                  <h4 className="text-md font-medium mb-2 text-gray-900 dark:text-white">
+                    {arrayName}
+                  </h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    Shape: {JSON.stringify(arrayData.size)} | Dimensions:{" "}
+                    {arrayData.ndim}
+                  </p>
+
+                  {arrayData.ndim === 2 ? (
+                    <div>
+                      <Table2D data={arrayData.data} fileName={buttonId} />
+
+                      <div className="flex w-full items-center justify-between mt-4">
+                        <div className="flex space-x-2">
+                          <Button
+                            ref={(el) => {
+                              downloadButtonRefs.current[buttonId] = el;
+                            }}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              downloadCSV(arrayData.data, buttonId);
+                            }}
                           >
-                            <SelectTrigger className="w-fit">
-                              <SelectValue placeholder="Select Chart Type" />
+                            Download CSV
+                          </Button>
+
+                          <Select
+                            value={chartType || ""}
+                            onValueChange={(value) =>
+                              setChartType(value || null)
+                            }
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Select chart type" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="line">Line Chart</SelectItem>
                               <SelectItem value="scatter">
                                 Scatter Plot
-                              </SelectItem>
-                              <SelectItem value="line">
-                                Line Chart
                               </SelectItem>
                               <SelectItem value="grayscale">
                                 Grayscale Image
                               </SelectItem>
                               <SelectItem value="scatter3d">
-                                Scatter3D
+                                3D Scatter
                               </SelectItem>
                               <SelectItem value="surface3d">
-                                Surface3D
+                                3D Surface
                               </SelectItem>
                             </SelectContent>
                           </Select>
-                          {chartType && (
-                            <Button
-                              onClick={() => setChartType(null)}
-                              className="ml-2"
-                            >
-                              Hide Chart
-                            </Button>
-                          )}
+                        </div>
+
+                        <div>
+                          <ArrayCopyBtn text={formattedText} />
                         </div>
                       </div>
-                      {/* Right column: Copy Button */}
-                      <div>
-                        <ArrayCopyBtn text={formattedText} />
-                      </div>
-                    </div>
-                    {/* Chart appears below all buttons */}
-                    {chartType && (
-                      <div className="mt-4">
-                        <ChartRenderer
+
+                      {chartType && (
+                        <div className="mt-4">
+                          <ChartRenderer
+                            arrayData={arrayData}
+                            chartType={chartType}
+                          />
+                        </div>
+                      )}
+
+                      {/* ML Panel for each 2D array */}
+                      <div className="mt-6">
+                        <MLPanel
                           arrayData={arrayData}
-                          chartType={chartType}
+                          fileName={fileName}
+                          arrayName={arrayName}
                         />
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div>
-                    <div className="flex items-center justify-end mb-2">
-                      <ArrayCopyBtn text={formattedText} />
                     </div>
-                    <MultiDimensionalArray data={arrayData.data} depth={0} />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+                  ) : (
+                    <div>
+                      <div className="flex items-center justify-end mb-2">
+                        <ArrayCopyBtn text={formattedText} />
+                      </div>
+                      <MultiDimensionalArray data={arrayData.data} depth={0} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

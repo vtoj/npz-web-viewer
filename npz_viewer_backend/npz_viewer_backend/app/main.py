@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import os
 from dotenv import load_dotenv
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from typing import Dict, List, Optional, Union, Any
 
 app = FastAPI()
 
@@ -100,3 +104,118 @@ async def upload_files(files: list[UploadFile] = File(...)):
             temp_file_path = os.path.join(temp_dir, file.filename)
             if os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
+
+@app.post("/ml/clustering")
+async def apply_clustering(
+    data: Dict[str, Any],
+):
+    """
+    Apply clustering algorithms to the provided data
+
+    Parameters:
+    - data: Dictionary containing:
+        - array: The array data to cluster
+        - algorithm: The clustering algorithm to use (kmeans, dbscan)
+        - params: Algorithm-specific parameters
+
+    Returns:
+    - Dictionary with clustering results
+    """
+    try:
+        array_data = np.array(data["array"])
+        algorithm = data["algorithm"]
+        params = data.get("params", {})
+
+        # Normalize data if requested
+        if data.get("normalize", True):
+            scaler = StandardScaler()
+            array_data = scaler.fit_transform(array_data)
+
+        # Apply the selected clustering algorithm
+        if algorithm == "kmeans":
+            n_clusters = params.get("n_clusters", 3)
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+            labels = kmeans.fit_predict(array_data).tolist()
+            centroids = kmeans.cluster_centers_.tolist()
+            inertia = float(kmeans.inertia_)
+
+            return {
+                "labels": labels,
+                "centroids": centroids,
+                "inertia": inertia,
+                "n_clusters": n_clusters
+            }
+
+        elif algorithm == "dbscan":
+            eps = params.get("eps", 0.5)
+            min_samples = params.get("min_samples", 5)
+            dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+            labels = dbscan.fit_predict(array_data).tolist()
+
+            # Count number of clusters (excluding noise points labeled as -1)
+            n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+
+            return {
+                "labels": labels,
+                "n_clusters": n_clusters,
+                "eps": eps,
+                "min_samples": min_samples
+            }
+
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported clustering algorithm: {algorithm}"
+            )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred during clustering: {str(e)}"
+        )
+
+@app.post("/ml/dimensionality_reduction")
+async def apply_dimensionality_reduction(
+    data: Dict[str, Any],
+):
+    """
+    Apply dimensionality reduction to the provided data
+
+    Parameters:
+    - data: Dictionary containing:
+        - array: The array data to reduce
+        - algorithm: The reduction algorithm to use (pca)
+        - params: Algorithm-specific parameters
+
+    Returns:
+    - Dictionary with reduced data
+    """
+    try:
+        array_data = np.array(data["array"])
+        algorithm = data["algorithm"]
+        params = data.get("params", {})
+
+        # Apply the selected dimensionality reduction algorithm
+        if algorithm == "pca":
+            n_components = params.get("n_components", 2)
+            pca = PCA(n_components=n_components)
+            reduced_data = pca.fit_transform(array_data).tolist()
+            explained_variance = pca.explained_variance_ratio_.tolist()
+
+            return {
+                "reduced_data": reduced_data,
+                "explained_variance": explained_variance,
+                "n_components": n_components
+            }
+
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported dimensionality reduction algorithm: {algorithm}"
+            )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred during dimensionality reduction: {str(e)}"
+        )
