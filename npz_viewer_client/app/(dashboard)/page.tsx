@@ -1,5 +1,5 @@
 import FileUploader from "@/components/dashboard/file-uploader/FileUploader";
-import { GithubIcon, Bug } from "lucide-react";
+import { GithubIcon, Bug, Coffee } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import BgNoiseWrapper from "@/components/ui/texture-wrapper";
@@ -51,10 +51,19 @@ export default function Home() {
                 Report bugs
               </Button>
             </Link>
+            <Link href={process.env.NEXT_PUBLIC_BUY_ME_A_COFFEE_URL!}>
+              <Button
+                variant={"outline"}
+                size={"sm"}
+                className="mt-5 ml-4 text-gray-500"
+              >
+                <Coffee className="h-4 w-4" />
+                Buy me a coffee
+              </Button>
+            </Link>
           </footer>
         </div>
       </main>
     </BgNoiseWrapper>
   );
 }
-
