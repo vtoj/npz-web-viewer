@@ -73,8 +73,7 @@ async def upload_files(files: list[UploadFile] = File(...)):
             else:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Unsupported file format for {
-                        file.filename}. Please upload .npz or .npy files.",
+                    detail=f"Unsupported file format for {file.filename}. Please upload .npz or .npy files.",
                 )
 
             # Check the size of each array
